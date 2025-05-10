@@ -33,12 +33,8 @@ segment_pins = [
 
 # Segment bit patterns for common characters
 segment_map = {
-    'F': [1, 1, 0, 0, 0, 1, 1],
-    'S': [1, 0, 1, 1, 0, 1, 1],
-    'B': [0, 0, 1, 1, 1, 1, 1],
-    'U':[1,1,1,1,0,0,0],
-    'W':[1,1,1,1,0,0,1],
-    'O':[1,1,1,1,1,1,0]
+    '+': [0, 1, 1, 0, 0, 0, 1],
+    '-': [0, 1, 1, 0, 0, 0, 0],
 }
 
 # Function to measure distance
@@ -87,14 +83,17 @@ def display_char(char):
 # Main loop
 try:
     while True:
-        
+        display_char('-')
         distance = measure_distance()
-        print("Distance:", distance, "cm")
+        if distance == -1:
+            print("Out of range or no echo")
+        else:
+            print("Distance:", distance, "cm")
 
         if distance < 10:
             stop()
             buzzer.high()
-            display_char('O')
+            display_char('+')
             time.sleep(0.5)
 
             # Backup and turn logic
@@ -105,7 +104,7 @@ try:
             stop()
 
         elif distance < 20:
-            display_char('W')
+            display_char('-')
             buzzer.high()
             forward()
             time.sleep(0.2)
@@ -114,12 +113,14 @@ try:
         else:
             buzzer.low()
             forward()
-            display_char('U')
-            time.sleep(0.1)
+            display_char('-')
+            
+        time.sleep(0.1)
 
 except KeyboardInterrupt:
     stop()
     buzzer.low()
     power_led.low()
     print("Program stopped.")
+
 
