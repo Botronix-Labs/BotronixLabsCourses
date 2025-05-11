@@ -1,9 +1,6 @@
 from machine import Pin, PWM
 import time
 
-# Power Indicator LED
-power_led = Pin(5, Pin.OUT)
-power_led.high()  # LED on when powered
 
 # Ultrasonic Sensor Pins
 trig = Pin(2, Pin.OUT)
@@ -20,7 +17,7 @@ left_servo.freq(50)
 right_servo.freq(50)
 
 
-# 7-Segment Display connected to GP16–GP22
+# 7-Segment Display GP16–GP22(for reduce the power consumption we only use B,C,G segments)
 segment_pins = [
     Pin(16, Pin.OUT),  # A
     Pin(17, Pin.OUT),  # B
@@ -56,25 +53,29 @@ def measure_distance():
     return distance
 
 # Servo control functions
+
+
 def stop():
     left_servo.duty_u16(5000)
     right_servo.duty_u16(5000)
-
+    
+#8000(full forward) 5500(slow forward) 
 def forward():
-    left_servo.duty_u16(8000)
-    right_servo.duty_u16(3000)
+    left_servo.duty_u16(5500) 
+    right_servo.duty_u16(4300)
 
+#3000(full backward) 4300(slow backward) 
 def backward():
-    left_servo.duty_u16(3000)
-    right_servo.duty_u16(8000)
+    left_servo.duty_u16(4300)
+    right_servo.duty_u16(5500)
 
 def turn_left():
-    left_servo.duty_u16(3000)
-    right_servo.duty_u16(3000)
+    left_servo.duty_u16(4300)
+    right_servo.duty_u16(4300)
 
 def turn_right():
-    left_servo.duty_u16(8000)
-    right_servo.duty_u16(8000)
+    left_servo.duty_u16(5500)
+    right_servo.duty_u16(5500)
 
 def display_char(char):
     pattern = segment_map.get(char.upper(), [0] * 7)
@@ -122,5 +123,7 @@ except KeyboardInterrupt:
     buzzer.low()
     power_led.low()
     print("Program stopped.")
+
+
 
 
