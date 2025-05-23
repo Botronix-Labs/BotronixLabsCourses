@@ -16,7 +16,7 @@ def move_servo_angle(angle):
     
 
 # Example 1 usage: 
-Move to 0 degrees (~500us)
+#Move to 0 degrees (~500us)
 move_servo_us(500)
 sleep(1)
 
