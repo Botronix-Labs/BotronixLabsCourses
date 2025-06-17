@@ -14,7 +14,7 @@ class RobotTank:
         self.in4.high()
 
     def backward(self):
-        self.in1.h++igh()
+        self.in1.high()
         self.in2.low()
         self.in3.high()
         self.in4.low()
@@ -25,7 +25,7 @@ class RobotTank:
         self.in3.low()
         self.in4.high()
 
-    def turn_left*(self):
+    def turn_left(self):
         self.in1.low()
         self.in2.high()
         self.in3.high()
