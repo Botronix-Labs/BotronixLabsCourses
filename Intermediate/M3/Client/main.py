@@ -70,7 +70,7 @@ def send_servo_command(joint):
         servo_directions[joint] = 1
     servo_angles[joint] = angle
     ble.send_command(f"{joint}{angle}")
-    draw_gui(status_msg=f"{joint} angle → {angle}°")
+    draw_gui(status_msg=f"{joint} angle â {angle}Â°")
 
 def reset_servos():
     for joint in ["B", "S", "E", "G"]:

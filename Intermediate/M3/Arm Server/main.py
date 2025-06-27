@@ -46,9 +46,9 @@ def initialize_servos():
 
 angles = {
     "base": 90,
-    "shoulder": 90,
-    "elbow": 90,
-    "gripper": 90
+    "shoulder": 0,
+    "elbow": 0,
+    "gripper": 180
 }
 
 # BLE receive callback
