@@ -1,3 +1,10 @@
+"""
+m8-introToJoystickControl.py
+
+Demonstrates how to control a servo motor using the X-axis of an analog joystick on a Raspberry Pi Pico.
+Features real-time response, dead zone filtering, and button press detection.
+"""
+
 # Joystick-Based Base Rotation Control for Robotic Arm
 # Hardware: Raspberry Pi Pico + HW-504 Joystick + Servo Motor (on GP2)
 # Author: Botronix Labs
@@ -20,6 +27,10 @@ base_servo.freq(50)                       # Standard servo PWM frequency (50Hz)
 def angle_to_duty(angle):
     """
     Converts a servo angle (0–180 degrees) to a PWM duty cycle.
+    Args:
+        angle (int): Target angle in degrees
+    Returns:
+        int: Duty cycle value for PWM
     """
     min_us = 500       # Minimum pulse width in microseconds
     max_us = 2500      # Maximum pulse width in microseconds
@@ -29,12 +40,19 @@ def angle_to_duty(angle):
 def move_base(angle):
     """
     Moves the base servo to the specified angle.
+    Args:
+        angle (int): Target angle in degrees
     """
     base_servo.duty_u16(angle_to_duty(angle))
 
 def sweep_to_angle(current, target):
     """
     Smoothly sweeps the servo from current angle to target angle in 1° steps.
+    Args:
+        current (int): Current angle
+        target (int): Target angle
+    Returns:
+        int: The final angle reached (target)
     """
     step = 1 if current < target else -1
     for a in range(current, target + step, step):

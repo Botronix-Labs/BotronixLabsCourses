@@ -1,3 +1,11 @@
+
+"""
+main.py
+
+Main entry point for the BLE Tank Server. Initializes BLE, robot tank, and obstacle sensor.
+Handles BLE commands and updates robot tank and obstacle sensor status.
+"""
+
 from machine import Pin
 import bluetooth
 import time
@@ -7,7 +15,7 @@ from ble_tank_server import BLETankServer
 from ble_led import BleLED
 from obstacle_sensor import ObstacleSensor
 
-# ð· Setup Components
+# Setup Components
 led = BleLED()
 tank = RobotTank(2, 3, 4, 5)
 obstacle = ObstacleSensor()
@@ -16,17 +24,20 @@ obstacle = ObstacleSensor()
 last_command = "S"
 
 def on_rx(command):
+    """
+    Callback for BLE commands received from the client.
+    Handles movement and obstacle logic.
+    Args:
+        command (str): Command character (F, B, L, R, S)
+    """
     global last_command
-     
-    print("ð¥ Command received:", command)
-    led.toggle()  
-
+    print("[BLE] Command received:", command)
+    led.toggle()
     try:
         if command in ["F", "B", "L", "R"]:
             last_command = command
-
         if obstacle.is_obstacle():
-            print("â Obstacle detected â stopping")
+            print("[Obstacle] Obstacle detected — stopping")
             tank.stop()
         else:
             if command == "F":
@@ -41,15 +52,15 @@ def on_rx(command):
                 tank.stop()
                 last_command = "S"
             else:
-                print("â ï¸ Unknown command")
+                print("[Warning] Unknown command")
     except Exception as e:
-        print("â Error executing command:", e)
+        print("[Error] Error executing command:", e)
 
 # Setup BLE
 ble = bluetooth.BLE()
 ble_server = BLETankServer(ble, on_rx)
 
-print("ð ï¸ Pico Robot Tank is waiting for BLE connection...")
+print("[System] Pico Robot Tank is waiting for BLE connection...")
 connected = False
 
 try:
@@ -58,10 +69,10 @@ try:
         if is_connected != connected:
             connected = is_connected
             if connected:
-                print("â BLE Connected.")
+                print("[BLE] BLE Connected.")
                 led.on()
             else:
-                print("ð Waiting for BLE connection...")
+                print("[BLE] Waiting for BLE connection...")
                 led.off()
 
         if not connected:
@@ -70,19 +81,19 @@ try:
             changed, state = obstacle.has_changed()
             if changed:
                 if state == 0:
-                    print("â Obstacle Detected")
+                    print("[Obstacle] Obstacle Detected")
                     tank.stop()
                     ble_server.send("Obstacle Detected")
-                    print("ð¤ Message sent to client.")
+                    print("[BLE] Message sent to client.")
                 else:
-                    print("â Path Clear")
+                    print("[Obstacle] Path Clear")
                     ble_server.send("Path Clear")
-                    print("ð¤ Message sent to client.")
+                    print("[BLE] Message sent to client.")
                     if last_command != "S":
                         on_rx(last_command)
         time.sleep(0.1)
 
 except KeyboardInterrupt:
-    print("ð Script stopped by user")
+    print("[System] Script stopped by user")
     tank.stop()
     led.off()

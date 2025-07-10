@@ -1,7 +1,14 @@
+"""
+m2-interfaceButtonAnd7-segmentLED.py
+
+Demonstrates interfacing a push button and a 7-segment LED display with a Raspberry Pi Pico.
+Each button press increments the displayed digit (0-9).
+"""
+
 from machine import Pin
 import time
 
-# Map GPIOs to 7-segment segments
+# Map GPIOs to 7-segment display segments (A-G)
 segment_pins = {
     'A': Pin(0, Pin.OUT),
     'B': Pin(1, Pin.OUT),
@@ -12,7 +19,7 @@ segment_pins = {
     'G': Pin(6, Pin.OUT)
 }
 
-# Segment patterns for 0-9 (1 = ON)
+# Segment patterns for digits 0-9 (list of segments to turn ON)
 digit_patterns = {
     0: ['A', 'B', 'C', 'D', 'E', 'F'],
     1: ['B', 'C'],
@@ -26,14 +33,14 @@ digit_patterns = {
     9: ['A', 'B', 'C', 'D', 'F', 'G']
 }
 
-# Push button input (active HIGH with internal pull-down)
+# Push button input (active HIGH with internal pull-down resistor)
 button = Pin(7, Pin.IN, Pin.PULL_DOWN)
 
 def show_digit(num):
+    """Display a single digit (0-9) on the 7-segment display."""
     # Turn off all segments first
     for seg in segment_pins:
         segment_pins[seg].value(0)
-
     # Turn on only required segments
     for seg in digit_patterns[num]:
         segment_pins[seg].value(1)
@@ -43,12 +50,10 @@ last_button_state = 0
 
 while True:
     button_state = button.value()
-    
     if button_state and not last_button_state:
-        # Rising edge detected
+        # Rising edge detected (button press)
         current_digit = (current_digit + 1) % 10
         show_digit(current_digit)
         time.sleep(0.2)  # Debounce delay
-
     last_button_state = button_state
 

@@ -1,3 +1,10 @@
+"""
+main.py
+
+Implements a BLE controller client for a PicoTank robot using an LCD display and joystick/button controls.
+Handles BLE connection, command sending, and obstacle status display.
+"""
+
 from machine import Pin
 from lcd_display import LCDDisplay
 from ble_tank_client import BLETankClient
@@ -20,14 +27,18 @@ ctrl = Pin(3, Pin.IN, Pin.PULL_UP)  # Center = Stop
 obstacle_status = "Unknown"
 
 def on_rx(msg):
+    """
+    BLE receive callback for obstacle status updates.
+    Updates the obstacle_status and refreshes the GUI.
+    """
     global obstacle_status
     print("📩 Received from tank:", msg)
     if msg in ["Obstacle Detected", "Path Clear"]:
         obstacle_status = msg
-        draw_gui(selected=last_command)# update the screen
-        
-  
+        draw_gui(selected=last_command)  # update the screen
+
 # Setup BLE
+global ble
 ble = BLETankClient()
 ble.on_rx = on_rx
 last_command = ""
@@ -35,30 +46,29 @@ connection_status = "Disconnected"
 tank_name = "PicoTank"
 
 def draw_gui(selected=""):
+    """
+    Draw the LCD GUI with current status and selected command.
+    Args:
+        selected (str): The currently selected command (F, B, L, R, S)
+    """
     lcd.fill(lcd.white)
     lcd.text("Pico BLE Controller", 20, 10, lcd.red)
     lcd.text("Tank: " + tank_name, 20, 30, lcd.green)
     lcd.text("B: Connect  X: Disconnect", 20, 50, lcd.blue)
     lcd.text("Status: " + connection_status, 20, 70, lcd.red)
-
     # Arrow layout
-    # Arrow color logic
-    # ASCII arrow alternatives
     def color(key): return lcd.red if key == selected else lcd.black
-
     lcd.text("^", 115, 100, color("F"))
     lcd.text("v", 115, 140, color("B"))
     lcd.text("<", 95, 120, color("L"))
     lcd.text(">", 135, 120, color("R"))
     lcd.text("X", 115, 120, color("S"))  # Stop
-    # Outline buttons (like a D-pad)
     lcd.rect(114, 99, 10, 10, color("F"))  # Up
     lcd.rect(114, 139, 10, 10, color("B"))  # Down
     lcd.rect(94, 119, 10, 10, color("L"))   # Left
     lcd.rect(134, 119, 10, 10, color("R"))  # Right
     lcd.rect(114, 119, 10, 10, color("S"))  # Stop
-
-        # Obstacle status label
+    # Obstacle status label
     lcd.text("Obstacle:", 20, 180, lcd.black)
     lcd.text(obstacle_status, 100, 180, lcd.red if obstacle_status == "Obstacle!" else lcd.green)
     lcd.show()
@@ -75,7 +85,6 @@ while True:
                 draw_gui()
                 ble.connect()
                 time.sleep(0.5)
-
         # Handle Disconnect
         if not button_x.value():
             if ble.connected:
@@ -84,7 +93,6 @@ while True:
                 connection_status = "Disconnected"
                 draw_gui()
                 time.sleep(0.5)
-
         # Refresh status if changed externally
         if ble.connected and connection_status != "Connected":
             connection_status = "Connected"
@@ -94,7 +102,6 @@ while True:
             connection_status = "Disconnected"
             print("🔌 BLE disconnected")
             draw_gui()
-
         # Handle joystick movement
         command = ""
         if not up.value():
@@ -107,19 +114,15 @@ while True:
             command = "R"
         elif not ctrl.value():
             command = "S"
-
         if command and command != last_command:
             ble.send_command(command)
             print(f"➡️ Sent command: {command}")
             draw_gui(selected=command)
             last_command = command
-
         elif not command and last_command:
             draw_gui(selected=None)
             last_command = ""
-
         time.sleep(0.1)
-
     except KeyboardInterrupt:
         print("🛑 Script interrupted")
         if ble.connected:

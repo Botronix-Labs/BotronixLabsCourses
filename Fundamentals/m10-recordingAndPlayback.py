@@ -1,3 +1,10 @@
+"""
+m10-recordingAndPlayback.py
+
+Demonstrates recording and playback of multi-joint robotic arm movements using two joysticks and buttons on a Raspberry Pi Pico.
+Movements are recorded step-by-step and can be replayed on demand.
+"""
+
 from machine import ADC, Pin, PWM
 from time import sleep
 
@@ -17,17 +24,33 @@ elbow_servo = PWM(Pin(4))
 for s in (base_servo, shoulder_servo, elbow_servo):
     s.freq(50)
 
-# === Helper Functions ===
 def angle_to_duty(angle):
+    """
+    Convert an angle (0-180 degrees) to a 16-bit PWM duty cycle.
+    Args:
+        angle (int): Target angle in degrees
+    Returns:
+        int: Duty cycle value for PWM
+    """
     min_us = 500
     max_us = 2500
     us = min_us + (max_us - min_us) * angle // 180
     return int(us * 65535 / 20000)
 
 def move_servo(servo, angle):
+    """Move a servo to the given angle."""
     servo.duty_u16(angle_to_duty(angle))
 
 def smooth_move(current, target, servo):
+    """
+    Smoothly move a servo from current angle to target angle.
+    Args:
+        current (int): Current angle
+        target (int): Target angle
+        servo (PWM): The PWM object for the servo
+    Returns:
+        int: The final angle reached (target)
+    """
     step = 1 if target > current else -1
     for angle in range(current, target + step, step):
         move_servo(servo, angle)
@@ -38,7 +61,6 @@ def smooth_move(current, target, servo):
 base_angle = 0
 shoulder_angle = 0
 elbow_angle = 0
-
 # Move to initial
 base_angle = smooth_move(0, base_angle, base_servo)
 shoulder_angle = smooth_move(0, shoulder_angle, shoulder_servo)
@@ -60,32 +82,26 @@ print("Ready to record movements...")
 while True:
     b1 = button1.value()
     b2 = button2.value()
-
     x1_val = x1.read_u16()
     x2_val = x2.read_u16()
     x3_val = x3.read_u16()
-
     # Joystick 1 X for base
     if abs(x1_val - center) > dead_zone:
         angle = int(x1_val * 180 / 65535)
         base_angle = smooth_move(base_angle, angle, base_servo)
-
     # Joystick 1 Y for shoulder
     if abs(x2_val - center) > dead_zone:
         angle = int(x2_val * 180 / 65535)
         shoulder_angle = smooth_move(shoulder_angle, angle, shoulder_servo)
-
     # Joystick 2 X for elbow
     if abs(x3_val - center) > dead_zone:
         angle = int(x3_val * 180 / 65535)
         elbow_angle = smooth_move(elbow_angle, angle, elbow_servo)
-
     # Record if either button is newly pressed
     if (b1 == 0 and button1_prev == 1) or (b2 == 0 and button2_prev == 1):
         recorded_steps.append((base_angle, shoulder_angle, elbow_angle))
         print("Recorded:", base_angle, shoulder_angle, elbow_angle)
         sleep(0.3)  # Debounce
-
     # Playback when both buttons are held
     if b1 == 0 and b2 == 0 and len(recorded_steps) > 0:
         print("Playing back sequence...")
@@ -97,7 +113,6 @@ while True:
             sleep(0.5)
         print("Playback finished.")
         sleep(1)
-
     button1_prev = b1
     button2_prev = b2
     sleep(0.05)

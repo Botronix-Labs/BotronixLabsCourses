@@ -1,7 +1,15 @@
+"""
+main.py
+
+Demonstrates basic movement commands for a robot tank using the RobotTank class.
+Executes forward, backward, left, and right movements with delays in between.
+"""
+
 from robot_tank import RobotTank
 from time import sleep
 
 # Initialize the robot tank with your motor driver pins
+# (in1_pin, in2_pin, in3_pin, in4_pin)
 tank = RobotTank(2, 3, 4, 5)
 
 try:

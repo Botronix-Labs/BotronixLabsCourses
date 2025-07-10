@@ -1,9 +1,25 @@
+"""
+lcd_display.py
+
+Implements an LCDDisplay class for controlling a 240x240 SPI LCD display using a Raspberry Pi Pico.
+Provides methods for drawing graphics and text, and color shortcuts.
+"""
+
 from machine import Pin, SPI, PWM
 import framebuf
 import time
 
 class LCDDisplay(framebuf.FrameBuffer):
+    """
+    LCDDisplay class for 240x240 SPI LCDs.
+    Inherits from framebuf.FrameBuffer for drawing support.
+    """
     def __init__(self, bl_pin=13, dc_pin=8, rst_pin=12, mosi_pin=11, sck_pin=10, cs_pin=9):
+        """
+        Initialize the LCD display and SPI interface.
+        Args:
+            bl_pin, dc_pin, rst_pin, mosi_pin, sck_pin, cs_pin (int): GPIO pins for display control
+        """
         self.width = 240
         self.height = 240
 
@@ -38,6 +54,7 @@ class LCDDisplay(framebuf.FrameBuffer):
         self.show()
 
     def _write_cmd(self, cmd):
+        """Send a command byte to the LCD controller."""
         self.cs(1)
         self.dc(0)
         self.cs(0)
@@ -45,6 +62,7 @@ class LCDDisplay(framebuf.FrameBuffer):
         self.cs(1)
 
     def _write_data(self, data):
+        """Send a data byte to the LCD controller."""
         self.cs(1)
         self.dc(1)
         self.cs(0)
@@ -52,6 +70,7 @@ class LCDDisplay(framebuf.FrameBuffer):
         self.cs(1)
 
     def _init_display(self):
+        """Hardware reset and initialization sequence for the LCD."""
         self.rst(1)
         self.rst(0)
         time.sleep_ms(50)
@@ -96,6 +115,7 @@ class LCDDisplay(framebuf.FrameBuffer):
         self._write_cmd(0x29)  # Display on
 
     def show(self):
+        """Push the buffer to the display."""
         self._write_cmd(0x2A)  # X address
         self._write_data(0x00)
         self._write_data(0x00)

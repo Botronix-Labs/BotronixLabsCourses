@@ -1,14 +1,25 @@
+"""
+m3-interfaceBuzzerAndUltrasonicSensor.py
+
+Demonstrates interfacing an ultrasonic distance sensor and a buzzer with a Raspberry Pi Pico.
+The buzzer and onboard LED provide feedback based on measured distance.
+"""
+
 from machine import Pin, time_pulse_us  # Import Pin class and time_pulse_us for timing ultrasonic signal
 import time  # Import time module for delays
 
-# Initialize pins
+# Initialize pins for ultrasonic sensor and buzzer/LED
 TRIG = Pin(3, Pin.OUT)   # Trigger pin of ultrasonic sensor (GPIO 3)
 ECHO = Pin(2, Pin.IN)    # Echo pin of ultrasonic sensor (GPIO 2)
 buzzer = Pin(15, Pin.OUT)  # Buzzer connected to GPIO 15
 led = Pin(25, Pin.OUT)     # Onboard LED for visual feedback (GPIO 25)
 
-# Function to measure distance using ultrasonic sensor
 def get_distance():
+    """
+    Measure distance using the ultrasonic sensor.
+    Returns:
+        float: Distance in centimeters.
+    """
     TRIG.low()           # Ensure trigger is LOW
     time.sleep_us(2)     # Short delay for stability
     TRIG.high()          # Send a 10 microsecond HIGH pulse
@@ -22,18 +33,18 @@ def get_distance():
     distance_cm = (pulse_time / 2) / 29.1
     return distance_cm
 
-# Main loop
+# Main loop: measure distance and control buzzer/LED accordingly
 while True:
     dist = get_distance()  # Measure distance
     print("Distance:", dist, "cm")  # Print it for debugging
 
-    if dist < 30:  # If object is within 50 cm
+    if dist < 30:  # If object is within 30 cm
         if dist < 5:
             # If object is very close (<5 cm), buzzer and LED stay ON
             buzzer.value(1)
             led.value(1)
         else:
-            # For distances between 5–50 cm, blink buzzer and LED faster as object gets closer
+            # For distances between 5–30 cm, blink buzzer and LED faster as object gets closer
             delay = max(0.01, dist / 1000)  # Delay between buzzes: closer = faster
 
             buzzer.value(1)
@@ -44,7 +55,7 @@ while True:
             led.value(0)
             time.sleep(delay)
     else:
-        # If object is far away (>50 cm), turn everything off
+        # If object is far away (>30 cm), turn everything off
         buzzer.value(0)
         led.value(0)
 

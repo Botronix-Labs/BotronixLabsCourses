@@ -1,3 +1,10 @@
+"""
+m9-dualJoystickControllerForManualControl.py
+
+Demonstrates manual control of a 4-DOF robotic arm using two analog joysticks and buttons on a Raspberry Pi Pico.
+Each joystick axis controls a different servo, and buttons toggle modes and the gripper.
+"""
+
 from machine import ADC, Pin, PWM
 from time import sleep
 
@@ -22,19 +29,34 @@ gripper_servo = PWM(Pin(5))
 for servo in (base_servo, shoulder_servo, elbow_servo, gripper_servo):
     servo.freq(50)
 
-# === Helper function to convert angle to duty cycle ===
 def angle_to_duty(angle):
+    """
+    Convert an angle (0-180 degrees) to a 16-bit PWM duty cycle.
+    Args:
+        angle (int): Target angle in degrees
+    Returns:
+        int: Duty cycle value for PWM
+    """
     min_us = 500
     max_us = 2500
     us = min_us + (max_us - min_us) * angle // 180
     return int(us * 65535 / 20000)
 
-# === Move servo to given angle ===
 def move_servo(servo, angle):
+    """Move a servo to the given angle."""
     servo.duty_u16(angle_to_duty(angle))
-    
+
 def sweep_to_angle(servo, current_angle, target_angle, delay=0.01):
-    """Smooth sweep servo from current to target angle."""
+    """
+    Smoothly sweep a servo from current_angle to target_angle.
+    Args:
+        servo (PWM): The PWM object for the servo
+        current_angle (int): Starting angle
+        target_angle (int): Target angle
+        delay (float): Delay between steps in seconds
+    Returns:
+        int: The final angle reached (target_angle)
+    """
     step = 1 if current_angle < target_angle else -1
     for angle in range(current_angle, target_angle + step, step):
         move_servo(servo, angle)
@@ -48,8 +70,7 @@ def reset_all_servos():
     shoulder_angle = sweep_to_angle(shoulder_servo, shoulder_angle, 0)
     elbow_angle = sweep_to_angle(elbow_servo, elbow_angle, 0)
     sweep_to_angle(gripper_servo, 0 if gripper_open else 100, 0 if gripper_open else 100)
-    
-    
+
 # === Dead zone for analog input ===
 center = 32767
 dead_zone = 2000
@@ -68,7 +89,7 @@ reset_all_servos()
 
 # === Main control loop ===
 while True:
-     # Toggle button1 flag on rising edge
+    # Toggle button1 flag on rising edge
     if button1.value() == 0 and button1_last == 1:
         button1_flag = not button1_flag
         led.value(button1_flag)  # LED indicates control mode ON/OFF
@@ -76,30 +97,24 @@ while True:
         reset_all_servos()  # Reset servos every toggle
         sleep(0.2)  # Debounce delay
     button1_last = button1.value()
-    
     if button1_flag:
         x1_val = x1.read_u16()
         y1_val = y1.read_u16()
         x2_val = x2.read_u16()
         print(f"x1 value : {x1_val} -- y1 value : {y1_val} -- x2 value : {x2_val}")
-
         # === Base control ===
         if abs(x1_val - center) > dead_zone:
             target = int(x1_val * 180 / 65535)
             base_angle = sweep_to_angle(base_servo, base_angle, target)
-
         # === Shoulder control ===
         if abs(y1_val - center) > dead_zone:
             target = int(y1_val * 180 / 65535)
             shoulder_angle = sweep_to_angle(shoulder_servo, shoulder_angle, target)
-
         # === Elbow control ===
         if abs(x2_val - center) > dead_zone:
             target = int(x2_val * 180 / 65535)
             elbow_angle = sweep_to_angle(elbow_servo, elbow_angle, target)
-
-
-     # === Gripper toggle with button 2 ===
+    # === Gripper toggle with button 2 ===
     if button2.value() == 0 and not button2_flag:
         gripper_open = not gripper_open
         angle = 0 if gripper_open else 100
@@ -107,5 +122,4 @@ while True:
         button2_flag = True
     elif button2.value() == 1:
         button2_flag = False
-
     sleep(0.05)
