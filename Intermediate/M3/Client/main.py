@@ -1,3 +1,11 @@
+
+"""
+main.py
+
+Main script for the BLE controller client.
+Handles LCD display, button/joystick input, BLE connection, and command sending for PicoTank and PicoArm.
+"""
+
 from machine import Pin
 from lcd_display import LCDDisplay
 from ble_controller_client import BLEControllerClient
@@ -32,6 +40,12 @@ servo_angles = {"B": 90, "S": 90, "E": 90, "G": 90}  # base, shoulder, elbow, gr
 servo_directions = {"B": 1, "S": 1, "E": 1, "G": 1}
 
 def draw_gui(selected=None, status_msg=""):
+    """
+    Draw the LCD GUI with current status and selected command.
+    Args:
+        selected (str): The currently selected command (F, B, L, R, S)
+        status_msg (str): Additional status message to display
+    """
     lcd.fill(lcd.white)
     lcd.text("Pico BLE Controller", 20, 10, lcd.red)
     lcd.text("Target: " + ble.target_name, 20, 30, lcd.green)

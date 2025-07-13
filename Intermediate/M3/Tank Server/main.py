@@ -1,3 +1,12 @@
+
+"""
+main.py
+
+Entry point for the Pico Robot Tank BLE server.
+Initializes BLE, LED, and tank motor control, and processes BLE commands to control the robot.
+Designed for MicroPython on Raspberry Pi Pico W or similar boards.
+"""
+
 from machine import Pin
 import bluetooth
 import time
@@ -6,14 +15,20 @@ from robot_tank import RobotTank
 from ble_tank_server import BLETankServer
 from ble_led import BleLED
 
-# 🚗 Setup Components
+# --- Setup Components ---
 led = BleLED()                            # BLE indicator LED (e.g., GPIO 16)
 tank = RobotTank(2, 3, 4, 5)              # Motor driver pins: IN1, IN2, IN3, IN4
 
-# 🔄 BLE receive callback
 def on_rx(command):
+    """
+    BLE receive callback. Handles incoming commands and controls the tank robot.
+
+    Args:
+        command (str): Single-character command from BLE client.
+            'F' = Forward, 'B' = Backward, 'L' = Left, 'R' = Right, 'S' = Stop
+    """
     print("📥 Command received:", command)
-    led.toggle()
+    led.toggle()  # Indicate command received
 
     try:
         if command == "F":
@@ -31,7 +46,7 @@ def on_rx(command):
     except Exception as e:
         print("❌ Error executing command:", e)
 
-# 📡 Setup BLE server
+# --- Setup BLE server ---
 ble = bluetooth.BLE()
 ble_server = BLETankServer(ble, on_rx)
 
@@ -40,6 +55,7 @@ connected = False
 
 try:
     while True:
+        # Check BLE connection status
         is_connected = bool(ble_server._connections)
 
         if is_connected != connected:
@@ -52,7 +68,7 @@ try:
                 led.off()
 
         if not connected:
-            led.blink()
+            led.blink()  # Blink LED while waiting for connection
 
         time.sleep(0.1)
 

@@ -1,9 +1,25 @@
+
+"""
+lcd_display.py
+
+Implements LCDDisplay class for controlling a 240x240 SPI LCD with frame buffer graphics.
+Provides methods for drawing text, shapes, and managing backlight.
+"""
+
 from machine import Pin, SPI, PWM
 import framebuf
 import time
 
 class LCDDisplay(framebuf.FrameBuffer):
+    """
+    LCD display driver for 240x240 SPI LCD with frame buffer graphics.
+    """
     def __init__(self, bl_pin=13, dc_pin=8, rst_pin=12, mosi_pin=11, sck_pin=10, cs_pin=9):
+        """
+        Initialize the LCD display and frame buffer.
+        Args:
+            bl_pin, dc_pin, rst_pin, mosi_pin, sck_pin, cs_pin (int): GPIO pins for LCD and SPI
+        """
         self.width = 240
         self.height = 240
 
@@ -38,6 +54,11 @@ class LCDDisplay(framebuf.FrameBuffer):
         self.show()
 
     def _write_cmd(self, cmd):
+        """
+        Write a command byte to the LCD controller.
+        Args:
+            cmd (int): Command byte
+        """
         self.cs(1)
         self.dc(0)
         self.cs(0)
@@ -45,6 +66,11 @@ class LCDDisplay(framebuf.FrameBuffer):
         self.cs(1)
 
     def _write_data(self, data):
+        """
+        Write a data byte to the LCD controller.
+        Args:
+            data (int): Data byte
+        """
         self.cs(1)
         self.dc(1)
         self.cs(0)
@@ -52,6 +78,9 @@ class LCDDisplay(framebuf.FrameBuffer):
         self.cs(1)
 
     def _init_display(self):
+        """
+        Initialize the LCD hardware sequence.
+        """
         self.rst(1)
         self.rst(0)
         time.sleep_ms(50)

@@ -1,3 +1,12 @@
+
+"""
+main.py
+
+Main script for the BLE-controlled robot arm server.
+Initializes servos, BLE server, and handles incoming BLE commands to control the arm.
+Provides functions for smooth servo movement and angle conversion.
+"""
+
 from machine import Pin, PWM
 import bluetooth
 import time
@@ -17,17 +26,36 @@ for servo in [base, shoulder, elbow, gripper]:
 # LED indicator (yellow)
 led = BleLED(13)
 
-# Angle-to-duty converter
 def angle_to_duty(angle):
+    """
+    Convert an angle in degrees to PWM duty cycle for servo control.
+    Args:
+        angle (int): Angle in degrees (0-180)
+    Returns:
+        int: PWM duty cycle value
+    """
     us = 500 + (angle * 2000) // 180
     return int(us * 65535 / 20000)
 
-# Servo mover
 def move_servo(servo, angle):
+    """
+    Move a servo to the specified angle.
+    Args:
+        servo (PWM): Servo PWM object
+        angle (int): Target angle in degrees
+    """
     servo.duty_u16(angle_to_duty(angle))
 
-# Sweep servo for smooth movement
 def sweep_servo(servo, start_angle, end_angle, step=1, delay=0.01):
+    """
+    Sweep a servo smoothly from start_angle to end_angle.
+    Args:
+        servo (PWM): Servo PWM object
+        start_angle (int): Starting angle
+        end_angle (int): Ending angle
+        step (int): Step size in degrees
+        delay (float): Delay between steps in seconds
+    """
     if start_angle == end_angle:
         return
     direction = 1 if end_angle > start_angle else -1
@@ -36,8 +64,10 @@ def sweep_servo(servo, start_angle, end_angle, step=1, delay=0.01):
         time.sleep(delay)
     move_servo(servo, end_angle)  # Ensure final position
 
-# Initial angles
 def initialize_servos():
+    """
+    Initialize all servos to their default positions.
+    """
     move_servo(base, 90)
     move_servo(shoulder, 0)
     move_servo(elbow, 0)
@@ -51,8 +81,12 @@ angles = {
     "gripper": 180
 }
 
-# BLE receive callback
 def on_rx(command):
+    """
+    BLE receive callback to handle incoming commands for servo movement.
+    Args:
+        command (str): Command string, e.g. 'B90' for base to 90 degrees
+    """
     print("📥 Received command:", command)
     led.on()
     try:

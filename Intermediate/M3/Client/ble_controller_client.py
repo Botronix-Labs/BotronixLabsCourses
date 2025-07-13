@@ -1,3 +1,10 @@
+"""
+ble_controller_client.py
+
+Implements BLEControllerClient class for connecting to PicoTank and PicoArm BLE servers.
+Handles scanning, connecting, service/characteristic discovery, and command sending.
+"""
+
 import bluetooth
 import time
 from micropython import const
@@ -15,7 +22,14 @@ _IRQ_GATTC_WRITE_DONE = const(17)
 _IRQ_GATTC_NOTIFY = const(18)
 
 class BLEControllerClient:
+    """
+    BLE client for connecting to PicoTank and PicoArm BLE servers.
+    Handles scanning, connecting, service/characteristic discovery, and command sending.
+    """
     def __init__(self):
+        """
+        Initialize BLE client and set up target device UUIDs.
+        """
         self.ble = bluetooth.BLE()
         self.ble.active(True)
         self.ble.irq(self._irq)
@@ -47,7 +61,11 @@ class BLEControllerClient:
         self.switch_target(self.target_name)
 
     def switch_target(self, name):
-        """Switch BLE target and update UUIDs."""
+        """
+        Switch BLE target and update UUIDs.
+        Args:
+            name (str): Target device name ("PicoTank" or "PicoArm")
+        """
         self.target_name = name
         self.target_uuids = self.service_uuids.get(name)
         if self.target_uuids:
@@ -56,6 +74,12 @@ class BLEControllerClient:
             print(f"⚠️ Unknown target: {name}")
 
     def _irq(self, event, data):
+        """
+        BLE IRQ event handler. Handles scan, connect, service/characteristic discovery, and notifications.
+        Args:
+            event (int): BLE event code
+            data (tuple): Event data
+        """
         if event == _IRQ_SCAN_RESULT:
             addr_type, addr, _, _, adv_data = data
             name = self.decode_name(adv_data)
